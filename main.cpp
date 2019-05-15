@@ -16,9 +16,7 @@ public:
 	}
 
 	void updatePosition() { 
-		//std::cout << sf::CircleShape::getPosition().x << " " << sf::CircleShape::getPosition().y << std::endl;
-		sf::CircleShape::move(_velocity[0], _velocity[1]);
-		//std::cout << (sf::CircleShape::getPosition()).x << " " << (sf::CircleShape::getPosition()).y << std::endl;
+		sf::CircleShape::move(_velocity[0], _velocity[1]);	
 	}
 };
 
@@ -58,10 +56,6 @@ int main() {
 
 	Engine engine(window);
 
-	// Circles
-	//sf::CircleShape shape(50.f);
-	//shape.setFillColor(sf::Color(100, 250, 50));
-
 	// Lines are weird
 	/*	
 	sf::Vertex line[] = {
@@ -73,13 +67,6 @@ int main() {
 	//radius, mass, position, velocity
 	engine.createObject(10.0, 10.0, std::array<double, 2> {20,20}, std::array<double, 2> {0.5,0});
 
-	/*
-	std::vector<Object> vec;
-
-	Object obj(10,10,std::array<double, 2> {20,20}, std::array<double, 2> {0.01,0});
-	vec.push_back(obj);
-	*/
-
 	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {
@@ -87,19 +74,8 @@ int main() {
 				window.close();
 		}
 	
-		//window.clear(sf::Color::Black);
-		//shape.move(1,0);
-		//window.draw(shape);
-		//window.draw(line, 2, sf::Lines);
-
-		//WORKS!!!
-		//vec[0].updatePosition();
-		//window.draw(vec[0]);
-		//other std::for_each and enhanced for loop dont work --> return a copy?
-		//just use vector::size and loop through them all!
-
 		engine.render();
-		//window.display();
+		
 	}
 
 	return 0;

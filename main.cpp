@@ -10,10 +10,33 @@ class Object : public sf::CircleShape {
 private:
 	double _mass;
 	std::array<double, 2> _velocity;
+	std::array<double, 2> _newVelocity;
+	bool collisionDetected = false;
 public:
 	Object(double radius, double mass, std::array<double, 2> position, std::array<double, 2> velocity) : sf::CircleShape(radius), _mass(mass), _velocity(velocity) {
 		sf::CircleShape::setPosition(position[0], position[1]);
 		sf::CircleShape::setFillColor(sf::Color(200,20,20));
+	}
+
+	double getMomentumX() {
+		return _mass * _velocity[0];
+	}
+	double getMomentumY() {
+		return _mass * _velocity[1];
+	}
+	double getKineticEnergyX() {
+		//Ke = 0.5m*v^2
+		return 0.5 * _mass * std::pow(_velocity[0], 2);
+	}
+	double getKineticEnergyY() {
+		return 0.5 * _mass * std::pow(_velocity[1], 2);
+	}
+
+	void setNewVelocity() {
+		if (collisionDetected == true) {
+			_velocity = _newVelocity;
+			collisionDetected = false;
+		}
 	}
 
 	void detectCollision(sf::RenderWindow &window, std::vector<Object> &objectVector) {
@@ -58,9 +81,28 @@ public:
 				if (distance <= (radius+otherRadius)) {
 					//collision detected
 					//work out new velocity
-					_velocity[0] *= -1;
-					_velocity[1] *= -1;
-
+					//_velocity[0] *= -1;
+					//_velocity[1] *= -1;
+					double momentumX = getMomentumX(); 	//_mass * _velocity[0];
+					double momentumY = getMomentumY(); 	//_mass * _velocity[1];
+					double energyX = getKineticEnergyX();
+					double energyY = getKineticEnergyY();
+					double otherMomentumX = objectVector[i].getMomentumX();
+					double otherMomentumY = objectVector[i].getMomentumY();
+					double otherEnergyX = objectVector[i].getKineticEnergyX();
+					double otherEnergyY = objectVector[i].getKineticEnergyY();
+					
+					//elastic collision
+					//energy and momentum are conserved
+					// Pin = Pout
+					// KEin = KEout
+					
+					
+					//set new velocity later, will mess with other objects calculations
+					//example:
+					collisionDetected = true;
+					_newVelocity[0] = _velocity[0]*-1;
+					_newVelocity[1] = _velocity[1]*-1;
 				}		
 			}
 		}		
@@ -88,8 +130,12 @@ public:
 	void render() {
 		windowReference->clear(sf::Color::Black);
 		
-		for (int i = 0; i < objectVector.size(); i++) {
+		for (int i = 0; i < objectVector.size(); i++) //handle collision calculations
 			objectVector[i].detectCollision(*windowReference, objectVector);
+
+		for (int i = 0; i < objectVector.size(); i++) { //move objects
+			//objectVector[i].detectCollision(*windowReference, objectVector);
+			objectVector[i].setNewVelocity();
 			objectVector[i].updatePosition();
 			windowReference->draw(objectVector[i]);
 		}
@@ -117,8 +163,8 @@ int main() {
 	*/
 
 	//radius, mass, position, velocity
-	engine.createObject(10.0, 10.0, std::array<double, 2> {20,20}, std::array<double, 2> {0.5,0.0});
-	engine.createObject(20.0, 5.0, std::array<double, 2> {20, 80}, std::array<double, 2> {0.5,1.0});
+	engine.createObject(10.0, 10.0, std::array<double, 2> {80,20}, std::array<double, 2> {1.0,-1.0});
+	engine.createObject(20.0, 5.0, std::array<double, 2> {70, 80}, std::array<double, 2> {0.5,1.0});
 
 	while (window.isOpen()) {
 		sf::Event event;

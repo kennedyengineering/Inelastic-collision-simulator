@@ -31,6 +31,24 @@ public:
 	double getKineticEnergyY() {
 		return 0.5 * _mass * std::pow(_velocity[1], 2);
 	}
+	double getMass() {
+		return _mass;
+	}
+	double getVelocityX() {
+		return _velocity[0];
+	}
+	double getVelocityY() {
+		return _velocity[1];
+	}
+	void setVelocityX(double newVelocityX) {
+		_newVelocity[0] = newVelocityX;
+	}
+	void setVelocityY(double newVelocityY) {
+		_newVelocity[1] = newVelocityY;
+	}
+	void setStatus(bool status) {
+		collisionDetected = status;
+	}
 
 	void setNewVelocity() {
 		if (collisionDetected == true) {
@@ -78,8 +96,10 @@ public:
 				double distanceY = std::abs(otherCenterY - centerY);
 				double distance = std::sqrt((distanceX*distanceX) + (distanceY*distanceY));
 
-				if (distance <= (radius+otherRadius)) {
+				if ((distance <= (radius+otherRadius)) && collisionDetected == false) {
 					//collision detected
+					collisionDetected = true;
+					objectVector[i].setStatus(true);
 					//work out new velocity
 					//_velocity[0] *= -1;
 					//_velocity[1] *= -1;
@@ -91,18 +111,48 @@ public:
 					double otherMomentumY = objectVector[i].getMomentumY();
 					double otherEnergyX = objectVector[i].getKineticEnergyX();
 					double otherEnergyY = objectVector[i].getKineticEnergyY();
-					
+					double otherMass = objectVector[i].getMass();
+					double otherVelocityX = objectVector[i].getVelocityX();
+					double otherVelocityY = objectVector[i].getVelocityY();
+
 					//elastic collision
 					//energy and momentum are conserved
 					// Pin = Pout
 					// KEin = KEout
+					// Vf1 = (m1-m2)Vi1/(m1+m2) //this object?
+					// Vf2 = 2*m1*Vi1/(m1+m2)   //or this one?
+					// X and Y independent?	
+
+					//need to implement a collision list. change the velocities of both objects at the same time. Vf1 and VF2
 					
-					
+					//Vf1
+					//FAIL
+					double otherfinalVelocityX = (_mass - otherMass)*_velocity[0]/(_mass+otherMass);
+					double otherfinalVelocityY = (_mass - otherMass)*_velocity[1]/(_mass+otherMass);
+				
+					//FAILS ON SECOND COLLISION
+					//double otherfinalVelocityX = (otherMass - _mass)*otherVelocityX/(otherMass+_mass);
+					//double otherfinalVelocityY = (otherMass - _mass)*otherVelocityY/(otherMass+_mass);
+					objectVector[i].setVelocityX(otherfinalVelocityX);
+					objectVector[i].setVelocityY(otherfinalVelocityY);
+
+					//Vf2
+					//RESULTS! - KEEPS GETTING SLOWER...
+					double finalVelocityX = 2*otherMass*otherVelocityX/(otherMass*_mass);
+					double finalVelocityY = 2*otherMass*otherVelocityY/(otherMass*_mass);
+
+					//FAIL
+					//double finalVelocityX = 2*_mass*_velocity[0]/(_mass*otherMass);
+					//double finalVelocityY = 2*_mass*_velocity[1]/(_mass*otherMass);
+
 					//set new velocity later, will mess with other objects calculations
 					//example:
-					collisionDetected = true;
-					_newVelocity[0] = _velocity[0]*-1;
-					_newVelocity[1] = _velocity[1]*-1;
+					//_newVelocity[0] = _velocity[0]*-1;
+					//_newVelocity[1] = _velocity[1]*-1;
+					_newVelocity[0] = finalVelocityX;
+					_newVelocity[1] = finalVelocityY;
+
+					//std::cout << finalVelocityX << " " << finalVelocityY << std::endl;
 				}		
 			}
 		}		
@@ -163,8 +213,8 @@ int main() {
 	*/
 
 	//radius, mass, position, velocity
-	engine.createObject(10.0, 10.0, std::array<double, 2> {80,20}, std::array<double, 2> {1.0,-1.0});
-	engine.createObject(20.0, 5.0, std::array<double, 2> {70, 80}, std::array<double, 2> {0.5,1.0});
+	engine.createObject(10.0, 10.0, std::array<double, 2> {80,20}, std::array<double, 2> {0.0,-1.0});
+	engine.createObject(20.0, 1.0, std::array<double, 2> {70, 90}, std::array<double, 2> {0.0,0.0});
 
 	while (window.isOpen()) {
 		sf::Event event;

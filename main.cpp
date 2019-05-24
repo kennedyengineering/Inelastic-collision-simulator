@@ -6,6 +6,8 @@
 #include <iostream>
 #include <cmath>
 
+const double RAD_TO_DEG = 180/M_PI;
+
 class Object : public sf::CircleShape {
 private:
 	double _mass;
@@ -115,6 +117,9 @@ public:
 					double otherVelocityX = objectVector[i].getVelocityX();
 					double otherVelocityY = objectVector[i].getVelocityY();
 
+					double VelocityX = getVelocityX();
+					double VelocityY = getVelocityY();
+
 					//elastic collision
 					//energy and momentum are conserved
 					// Pin = Pout
@@ -127,32 +132,62 @@ public:
 					
 					//Vf1
 					//FAIL
-					double otherfinalVelocityX = (_mass - otherMass)*_velocity[0]/(_mass+otherMass);
-					double otherfinalVelocityY = (_mass - otherMass)*_velocity[1]/(_mass+otherMass);
+					//double otherfinalVelocityX = (_mass - otherMass)*_velocity[0]/(_mass+otherMass);
+					//double otherfinalVelocityY = (_mass - otherMass)*_velocity[1]/(_mass+otherMass);
 				
 					//FAILS ON SECOND COLLISION
 					//double otherfinalVelocityX = (otherMass - _mass)*otherVelocityX/(otherMass+_mass);
 					//double otherfinalVelocityY = (otherMass - _mass)*otherVelocityY/(otherMass+_mass);
-					objectVector[i].setVelocityX(otherfinalVelocityX);
-					objectVector[i].setVelocityY(otherfinalVelocityY);
+					//objectVector[i].setVelocityX(otherfinalVelocityX);
+					//objectVector[i].setVelocityY(otherfinalVelocityY);
 
 					//Vf2
 					//RESULTS! - KEEPS GETTING SLOWER...
-					double finalVelocityX = 2*otherMass*otherVelocityX/(otherMass*_mass);
-					double finalVelocityY = 2*otherMass*otherVelocityY/(otherMass*_mass);
+					//double finalVelocityX = 2*otherMass*otherVelocityX/(otherMass*_mass);
+					//double finalVelocityY = 2*otherMass*otherVelocityY/(otherMass*_mass);
 
 					//FAIL
 					//double finalVelocityX = 2*_mass*_velocity[0]/(_mass*otherMass);
 					//double finalVelocityY = 2*_mass*_velocity[1]/(_mass*otherMass);
 
+					//PERFECTLY INELASTIC COLLSIONS
+					//
+					//cot^-1(((m1+m2)/(m1*V1iy+m2*Vi2y))m1*V1ix+m2*Vi2x) --> FINAL THETA
+					//(m1*Vi1y+m2*Vi2y)/((m1+m2)*sin(FINAL THETA)) --> FINAL VELOCITY
+					//m1 = THIS MASS, m2 = OTHER MASS etc.
+					//acot(x) = atan(1/x)
+					double FINAL_THETA = atan(1/(((_mass + otherMass)/(_mass*VelocityY+otherMass*otherVelocityY))*(_mass*VelocityX+otherMass*otherVelocityX)));
+					double FINAL_THETA_DEG = FINAL_THETA * RAD_TO_DEG;
+					double FINAL_VELOCITY = (_mass*VelocityY+otherMass*otherVelocityY)/((_mass+otherMass)*sin(FINAL_THETA));
+					double FINAL_VELOCITY_X = FINAL_VELOCITY * cos(FINAL_THETA);
+					double FINAL_VELOCITY_Y = FINAL_VELOCITY * sin(FINAL_THETA);
+					//
+					//END VELOCITY CALCULATIONS
+
+					std::cout << FINAL_THETA << " " << FINAL_THETA_DEG << " " << FINAL_VELOCITY;
+					std::cout << " " << FINAL_VELOCITY_X << " " << FINAL_VELOCITY_Y << std::endl;
+
+					
+
 					//set new velocity later, will mess with other objects calculations
 					//example:
 					//_newVelocity[0] = _velocity[0]*-1;
 					//_newVelocity[1] = _velocity[1]*-1;
-					_newVelocity[0] = finalVelocityX;
-					_newVelocity[1] = finalVelocityY;
+					//_newVelocity[0] = finalVelocityX;
+					//_newVelocity[1] = finalVelocityY;
+					setVelocityX(FINAL_VELOCITY_X);
+					setVelocityY(FINAL_VELOCITY_Y);
+					objectVector[i].setVelocityX(FINAL_VELOCITY_X);
+					objectVector[i].setVelocityY(FINAL_VELOCITY_Y);
 
 					//std::cout << finalVelocityX << " " << finalVelocityY << std::endl;
+					//
+					//MOVE OBJECTS OUT OF EACH OTHER SO THERE ARENT MICRO-COLLISIONS
+					//objectVector[i].CircleShape::move(0, -10);
+					//if final velocity y is positive move up
+					//if final velocity x is positive move left
+					//find current velcocity and go back one step!
+					sf::CircleShape::move(-_velocity[0], -_velocity[1]);
 				}		
 			}
 		}		

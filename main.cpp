@@ -10,6 +10,7 @@ const double RAD_TO_DEG = 180/M_PI;
 
 class Object : public sf::CircleShape {
 private:
+	const std::array<double, 2> ZERO = {0, 0};
 	double _mass;
 	std::array<double, 2> _velocity;
 	std::array<double, 2> _newVelocity;
@@ -42,6 +43,9 @@ public:
 	double getVelocityY() {
 		return _velocity[1];
 	}
+	double getVelocityMagnitude() {
+		return sqrt(pow(_velocity[0],2) + pow(_velocity[1],2));
+	}
 	void setVelocityX(double newVelocityX) {
 		_newVelocity[0] = newVelocityX;
 	}
@@ -72,15 +76,37 @@ public:
 		const double centerX = objPosX + radius;
 		const double centerY = objPosY + radius;
 
+		/*	
 		if (winSizeX <= (objPosX+(2*radius))) 
 			_velocity[0] *= -1; //perfectly elastic collision
-		if (objPosX <= 0)
+		else if (objPosX <= 0)
 			_velocity[0] *= -1;
 
 		if (winSizeY <= (objPosY+(2*radius)))
 			_velocity[1] *= -1;
-		if (objPosY <= 0)
+		else if (objPosY <= 0)
 			_velocity[1] *= -1;
+		*/
+
+		
+		//perfectly inelastic collision
+		if (winSizeX <= (objPosX+(2*radius))) {
+			_velocity = ZERO;
+			sf::CircleShape::setPosition(winSizeX-(2*radius), objPosY);
+		}
+		else if (objPosX <= 0) {
+			_velocity = ZERO;
+			sf::CircleShape::setPosition(0, objPosY);
+		}
+
+		if (winSizeY <= (objPosY+(2*radius))) {
+			_velocity = ZERO;
+			sf::CircleShape::setPosition(objPosX, winSizeY-(2*radius));
+		}
+		else if (objPosY <= 0) {
+			_velocity = ZERO;
+			sf::CircleShape::setPosition(objPosX, 0);	
+		}
 
 		//detect other Objects
 		for (int i = 0; i < objectVector.size(); i++) {
@@ -158,16 +184,14 @@ public:
 					//acot(x) = atan(1/x)
 					double FINAL_THETA = atan(1/(((_mass + otherMass)/(_mass*VelocityY+otherMass*otherVelocityY))*(_mass*VelocityX+otherMass*otherVelocityX)));
 					double FINAL_THETA_DEG = FINAL_THETA * RAD_TO_DEG;
-					double FINAL_VELOCITY = (_mass*VelocityY+otherMass*otherVelocityY)/((_mass+otherMass)*sin(FINAL_THETA));
+					//double FINAL_VELOCITY = (_mass*VelocityY+otherMass*otherVelocityY)/((_mass+otherMass)*sin(FINAL_THETA));
+					double FINAL_VELOCITY = (_mass*getVelocityMagnitude()+otherMass*objectVector[i].getVelocityMagnitude())/(_mass+otherMass);
 					double FINAL_VELOCITY_X = FINAL_VELOCITY * cos(FINAL_THETA);
 					double FINAL_VELOCITY_Y = FINAL_VELOCITY * sin(FINAL_THETA);
 					//
 					//END VELOCITY CALCULATIONS
 
-					std::cout << FINAL_THETA << " " << FINAL_THETA_DEG << " " << FINAL_VELOCITY;
-					std::cout << " " << FINAL_VELOCITY_X << " " << FINAL_VELOCITY_Y << std::endl;
-
-					
+					//std::cout << FINAL_VELOCITY << std::endl;	
 
 					//set new velocity later, will mess with other objects calculations
 					//example:
@@ -234,7 +258,7 @@ public:
 
 int main() {
 	//window setup
-	sf::RenderWindow window(sf::VideoMode(200, 200), "SFML TEST");
+	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML TEST");
 	window.setVerticalSyncEnabled(true); //set to monitors frequency
 
 	Engine engine(window);
@@ -248,8 +272,8 @@ int main() {
 	*/
 
 	//radius, mass, position, velocity
-	engine.createObject(10.0, 10.0, std::array<double, 2> {80,20}, std::array<double, 2> {0.0,-1.0});
-	engine.createObject(20.0, 1.0, std::array<double, 2> {70, 90}, std::array<double, 2> {0.0,0.0});
+	engine.createObject(10.0, 10.0, std::array<double, 2> {180,20}, std::array<double, 2> {1.0,1.0});
+	engine.createObject(20.0, 1.0, std::array<double, 2> {250, 190}, std::array<double, 2> {0.5,0.0});
 
 	while (window.isOpen()) {
 		sf::Event event;

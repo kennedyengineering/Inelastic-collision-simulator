@@ -5,6 +5,7 @@
 #include <array>
 #include <iostream>
 #include <cmath>
+#include <fstream>
 
 const double RAD_TO_DEG = 180/M_PI;
 
@@ -257,11 +258,42 @@ public:
 };
 
 int main() {
+	std::string filePath;
+	std::ifstream simulationFile;
+	
+	do {
+	std::cout << "Enter name of simulation data file: ";
+	std::cin >> filePath;
+	filePath = "simulations/"+filePath;
+	std::cout << "opening " << filePath << std::endl;
+	
+	simulationFile.open(filePath);
+	if (!simulationFile.is_open())
+		std::cout << "ERROR! Enter a valid file path..." << std::endl;
+	} while (!simulationFile.is_open());
+
+	int count = 0;
+    	std::string line;
+    	while (getline(simulationFile, line))
+        	count++;
+
+	std::cout << "found " << count << " objects" << std::endl;
+
+	simulationFile.clear();
+	simulationFile.seekg(0, std::ios::beg);
+
 	//window setup
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML TEST");
 	window.setVerticalSyncEnabled(true); //set to monitors frequency
 
 	Engine engine(window);
+
+	for (int i = 0; i < count; i++) {
+		double radius, mass, posx, posy, velx, vely;
+		simulationFile >> radius >> mass >> posx >> posy >> velx >> vely;
+		std::cout << "creating object with, " << "radius: " << radius << ", mass: " << mass << ", coordinates: (" << posx << ", " << posy << "), velocity vector: (" << velx << ", " << vely << ")" <<  std::endl;
+		engine.createObject(radius, mass, std::array<double, 2> {posx, posy}, std::array<double, 2> {velx, vely});
+	}
 
 	// Lines are weird
 	/*	
@@ -272,8 +304,8 @@ int main() {
 	*/
 
 	//radius, mass, position, velocity
-	engine.createObject(10.0, 10.0, std::array<double, 2> {180,20}, std::array<double, 2> {1.0,1.0});
-	engine.createObject(20.0, 1.0, std::array<double, 2> {250, 190}, std::array<double, 2> {0.5,0.0});
+	//engine.createObject(10.0, 10.0, std::array<double, 2> {180,20}, std::array<double, 2> {1.0,1.0});
+	//engine.createObject(20.0, 1.0, std::array<double, 2> {250, 190}, std::array<double, 2> {0.5,0.0});
 
 	while (window.isOpen()) {
 		sf::Event event;

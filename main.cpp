@@ -283,7 +283,7 @@ int main() {
 	simulationFile.seekg(0, std::ios::beg);
 
 	//window setup
-	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML TEST");
+	sf::RenderWindow window(sf::VideoMode(800, 600), "INELASTIC COLLISION SIMULATOR");
 	window.setVerticalSyncEnabled(true); //set to monitors frequency
 
 	Engine engine(window);
